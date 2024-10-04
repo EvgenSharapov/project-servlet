@@ -7,13 +7,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
+import java.io.IOException;
+import java.util.List;
 
 
 @WebServlet(name = "LogicServlet", value = "/logic")
 public class LogicServlet extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession currentSession = req.getSession();
 
         Field field = extractField(currentSession);
@@ -32,7 +33,20 @@ public class LogicServlet extends HttpServlet {
         if(emptyFieldIndex >= 0) {
             field.getField().put(emptyFieldIndex, Sign.NOUGHT);
         }
+        else {
+            // Добавляем в сессию флаг, который сигнализирует что произошла ничья
+            currentSession.setAttribute("draw", true);
 
+            // Считаем список значков
+            List<Sign> data = field.getFieldData();
+
+            // Обновляем этот список в сессии
+            currentSession.setAttribute("data", data);
+
+            // Шлем редирект
+            resp.sendRedirect("/index.jsp");
+            return;
+        }
         List<Sign> data = field.getFieldData();
 
         currentSession.setAttribute("data", data);
@@ -48,7 +62,9 @@ public class LogicServlet extends HttpServlet {
             if(checkWin(resp, currentSession, field)) {
                 return;
             }
+
         }
+
     }
 
 
